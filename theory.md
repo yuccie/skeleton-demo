@@ -1,4 +1,48 @@
 ## 过程
+现将骨架屏代码放到<div id="app"></div>里，然后等到页面的其他资源来了之后，把里面的内容替换了而已
+
+在骨架屏展示期间，会在<div id="app"></div>标签里有类似如下代码：
+
+```js
+// 其实就是根据路由匹配对应的骨架屏组件
+var pathname = window.location.pathname;
+var hash = window.location.hash;
+var skeletons = [{
+    id: 'skeleton',
+    el: document.querySelector('#skeleton')
+},{
+    id: 'skeletonOne',
+    el: document.querySelector('#skeletonOne')
+}];
+var isMatched = function(pathReg, mode) {
+    if (mode === 'hash') {
+        return pathReg.test(hash.replace('#', ''));
+    }
+    else if (mode === 'history') {
+        return pathReg.test(pathname);
+    }
+    return false;
+};
+var showSkeleton = function(skeletonId) {
+    for (var i = 0; i < skeletons.length; i++) {
+        var skeleton = skeletons[i];
+        if (skeletonId === skeleton.id) {
+            skeleton.el.style = 'display:block;';
+        }
+        else {
+            skeleton.el.style = 'display:none;';
+        }
+    }
+};
+
+if (isMatched(/^\/hotFoodList(?:\/)?$/i, 'hash')) {
+    showSkeleton('skeleton');
+}
+
+else if (isMatched(/^\/reportMsg(?:\/)?$/i, 'hash')) {
+    showSkeleton('skeletonOne');
+}
+```
 
 1. 首先定义骨架屏的vue文件(骨架屏组件其实可以使用svg，图片等，但也可以手写页面)，以及入口文件，入口文件类似其他页面的main.js，因为webapck入口解析就是js
 2. 在webpack的配置文件中引入vue-skeleton-webpack-plugin插件，并注册
@@ -8,6 +52,41 @@
 6. apply方法会执行generateSkeletonForEntries方法
 7. generateSkeletonForEntries方法根据骨架屏文件入口地址列表，根据入库数量生成多个骨架屏的配置，然后分别调用('vue-server-renderer').createBundleRenderer方法，从webpack输出的boundle文件中解析出骨架屏源代码（这里都是新建childCompiler执行的）
 8. 拿到所有入口的源代码后，在webpack的html-webpack-plugin-before-html-processing插件回调中，将骨架屏的源代码插入到项目主入口的源码中
+
+在显示骨架屏阶段，在app.vue里会有类似如下脚本:
+
+```js
+var pathname = window.location.pathname;
+var hash = window.location.hash;
+var skeletons = [{
+    id: 'skeleton',
+    el: document.querySelector('#skeleton')
+}];
+var isMatched = function(pathReg, mode) {
+    if (mode === 'hash') {
+        return pathReg.test(hash.replace('#', ''));
+    }
+    else if (mode === 'history') {
+        return pathReg.test(pathname);
+    }
+    return false;
+};
+var showSkeleton = function(skeletonId) {
+    for (var i = 0; i < skeletons.length; i++) {
+        var skeleton = skeletons[i];
+        if (skeletonId === skeleton.id) {
+            skeleton.el.style = 'display:block;';
+        }
+        else {
+            skeleton.el.style = 'display:none;';
+        }
+    }
+};
+
+if (isMatched(/^\/hotFoodList(?:\/)?$/i, 'hash')) {
+    showSkeleton('skeleton');
+}
+```
 
 
 ```js
